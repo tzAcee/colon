@@ -27,7 +27,7 @@ TEST_CASE("ColonParser test-success")
 
 	auto result = parser.parse();
 
-	CHECK(result.Head().Identifier() == "enatry");
+	CHECK(result.Head().Identifier() == "entry");
 	CHECK(result.Head().Children().size() == 1);
 
 	CHECK(result.Head().Children().at(0).Identifier() == "function unparameterised");
