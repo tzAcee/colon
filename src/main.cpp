@@ -6,19 +6,13 @@ int main()
 	ColonCompiler compiler;
 	while (true)
 	{
-		std::cout << "to compile: \n";
+		std::cout << "\nto compile: \n";
 		std::string src = "";
 		std::cin >> src;
-		try {
-			std::cout << "\n";
-			compiler.compile(src);
+		std::cout << "\n";
+		auto res = compiler.compile(src);
+		if(res.has_value())
 			std::cerr << "\nSuccess! \n";
-		}
-		catch (std::runtime_error& err)
-		{
-			std::cerr << "\n" << err.what() << "\n";
-		}
-
 	}
 
 	return 0;

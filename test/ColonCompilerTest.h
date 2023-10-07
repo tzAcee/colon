@@ -70,5 +70,5 @@ TEST_CASE("ColonCompiler test-failure")
 
 	ColonCompiler compiler;
 
-	CHECK_THROWS(compiler.compile(test_source));
+	CHECK(compiler.compile(test_source).has_value() == false);
 }
