@@ -34,7 +34,7 @@ public:
 	{
 	}
 
-	auto parse() ->ColonAST const;
+	auto parse() ->std::optional<ColonAST const>;
 
 private: 
 	auto parse_entry() -> ASTNode;

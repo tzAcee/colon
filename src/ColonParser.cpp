@@ -1,7 +1,7 @@
 #include <ColonParser.h>
 #include <iostream>
 
-auto ColonParser::parse() -> ColonAST const
+auto ColonParser::parse() -> std::optional<ColonAST const>
 {
 	try {
 		ColonAST return_ast{ parse_entry() };
@@ -11,7 +11,7 @@ auto ColonParser::parse() -> ColonAST const
 	{
 		std::cerr << "parse error:\n";
 		std::cerr << e.what();
-		throw e;
+		return std::nullopt;
 	}
 }
 

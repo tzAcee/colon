@@ -25,7 +25,7 @@ TEST_CASE("ColonParser test-success")
 
 	ColonParser parser{ tokens };
 
-	auto result = parser.parse();
+	auto result = parser.parse().value();
 
 	CHECK(result.Head().Identifier() == "entry");
 	CHECK(result.Head().Children().size() == 1);

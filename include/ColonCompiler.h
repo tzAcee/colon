@@ -15,6 +15,6 @@ public:
 		std::vector<TokenMeta> TokenMetas;
 		ColonAST AST;
 	};
-	auto compile(const std::string& source)->CompileResult const;
+	auto compile(const std::string& source)->std::optional<CompileResult const>;
 };
 

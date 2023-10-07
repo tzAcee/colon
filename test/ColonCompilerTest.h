@@ -9,7 +9,7 @@ TEST_CASE("ColonCompiler test-success")
 	std::string const test_source = ":a(){:u=1963;}";
 
 	ColonCompiler compiler;
-	auto compile_result = compiler.compile(test_source);
+	auto compile_result = compiler.compile(test_source).value();
 	auto result = compile_result.AST;
 
 	CHECK(result.Head().Identifier() == "entry");
