@@ -30,7 +30,7 @@ public:
 
         if (return_token_list.size() != m_Source.size())
         {
-            throw std::exception{ "Invalid lexing, source length doesn't match tokenized values length." };
+            throw std::runtime_error{ "Invalid lexing, source length doesn't match tokenized values length." };
         }
 
         return return_token_list;
