@@ -16,15 +16,16 @@ public:
     ColonLexer(auto const& source) : m_Source{ std::move(source) }
     { }
 
-    auto lex() const -> std::vector<PreDefToken> const
+    auto lex() const -> std::vector<TokenMeta> const
     {
-        std::vector<PreDefToken> return_token_list;
+        std::vector<TokenMeta> return_token_list;
 
         std::for_each(m_Source.begin(), m_Source.end(), [this, &return_token_list](auto current_char)
             {
                 auto token = get_pre_def_token(current_char);
                 if (token.has_value()) {
-                    return_token_list.emplace_back(token.value());
+
+                    return_token_list.emplace_back(TokenMeta{ token.value(), SourceInformation{current_char, 0,0 } });
                 }
             });
 

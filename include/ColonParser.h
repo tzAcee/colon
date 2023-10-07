@@ -1,7 +1,8 @@
 #pragma once
 #include <vector>
-#include "TokenIterator.h"
-#include "ColonAST.h"
+#include <TokenIterator.h>
+#include <ColonAST.h>
+#include <ColonParserCompliance.h>
 #include <functional>
 
 class ParseFallThrough
@@ -29,7 +30,7 @@ public:
 class ColonParser
 {
 public:
-	ColonParser(auto const& tokens) : m_TokenIterator{ TokenIterator{std::move(tokens)} }
+	ColonParser(std::vector<TokenMeta> const& tokens) : m_TokenIterator{ TokenIterator{std::move(tokens)} }
 	{
 	}
 

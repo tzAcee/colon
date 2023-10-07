@@ -9,11 +9,11 @@
 class TokenIterator
 {
 public:
-	TokenIterator(auto const& tokens) : m_Tokens{ std::move(tokens) }
+	TokenIterator(std::vector<TokenMeta> const& tokens) : m_Tokens{ tokens }
 	{
 	}
 
-	auto Next() -> std::optional<PreDefToken const>
+	auto Next() -> std::optional<TokenMeta const>
 	{
 		try
 		{
@@ -25,7 +25,17 @@ public:
 		}
 	}
 
-	auto LookAhead(uint8_t const n) -> std::optional<PreDefToken const>
+	auto Consume() -> void
+	{
+		m_Index++;
+	}
+
+	auto Get() -> std::optional<TokenMeta const>
+	{
+		return LookAhead(0);
+	}
+
+	auto LookAhead(uint8_t const n) -> std::optional<TokenMeta const>
 	{
 		try
 		{
@@ -37,7 +47,7 @@ public:
 		}
 	}
 
-	auto LookBehind(uint8_t const n) -> std::optional<PreDefToken const>
+	auto LookBehind(uint8_t const n) -> std::optional<TokenMeta const>
 	{
 		try
 		{
@@ -65,7 +75,7 @@ public:
 		m_RememberedIndices.pop();
 	}
 private:
-	std::vector<PreDefToken> const m_Tokens;
+	std::vector<TokenMeta> const m_Tokens;
 	size_t m_Index = 0;
 
 	std::stack<size_t> m_RememberedIndices;

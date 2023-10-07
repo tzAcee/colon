@@ -12,7 +12,7 @@ public:
 
 	struct CompileResult
 	{
-		std::vector<PreDefToken> Tokens;
+		std::vector<TokenMeta> TokenMetas;
 		ColonAST AST;
 	};
 	auto compile(const std::string& source)->CompileResult const;

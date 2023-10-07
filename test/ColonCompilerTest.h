@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include "doctest.h"
 
 #include <ColonCompiler.h>
@@ -28,7 +26,7 @@ TEST_CASE("ColonCompiler test-success")
 	CHECK(def[0].Children().size() == 0);
 	CHECK(def[1].Identifier() == "word");
 	CHECK(def[1].Children()[0].Identifier() == "letter");
-	CHECK(def[1].Children()[0].Children()[0].Identifier() == "a letter");
+	CHECK(def[1].Children()[0].Children()[0].Identifier() == "a");
 
 	CHECK(unparam[1].Identifier() == "(");
 	CHECK(unparam[1].Children().empty());
@@ -49,7 +47,7 @@ TEST_CASE("ColonCompiler test-success")
 	CHECK(assign_def[0].Children().size() == 0);
 	CHECK(assign_def[1].Identifier() == "word");
 	CHECK(assign_def[1].Children()[0].Identifier() == "letter");
-	CHECK(assign_def[1].Children()[0].Children()[0].Identifier() == "a letter");
+	CHECK(assign_def[1].Children()[0].Children()[0].Identifier() == "u");
 	CHECK(assign[1].Identifier() == "=");
 	CHECK(assign[1].Children().empty());
 	CHECK(assign[2].Identifier() == "variable value");
@@ -58,10 +56,19 @@ TEST_CASE("ColonCompiler test-success")
 	CHECK(var_val[0].Identifier() == "number");
 	CHECK(var_val[0].Children()[0].Identifier() == "digit");
 	CHECK(var_val[0].Children()[0].Children().size() == 1);
-	CHECK(var_val[0].Children()[0].Children()[0].Identifier() == "digit");
+	CHECK(var_val[0].Children()[0].Children()[0].Identifier() == "1");
 	CHECK(assign[3].Identifier() == ";");
 	CHECK(assign[3].Children().empty());
 
 	CHECK(unparam[5].Identifier() == "}");
 	CHECK(unparam[5].Children().empty());
+}
+
+TEST_CASE("ColonCompiler test-failure")
+{
+	std::string const test_source = "a(){:u=1963;}";
+
+	ColonCompiler compiler;
+
+	CHECK_THROWS_WITH(compiler.compile(test_source), "Expected a Token with ID '12', but got 'a' [21].");
 }

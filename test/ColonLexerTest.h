@@ -5,6 +5,7 @@
 #include <ColonLexer.h>
 
 #include <cstdint>
+#include <algorithm>
 
 TEST_CASE("ColonLexer char8_t ':ba2'-test")
 {
@@ -20,7 +21,12 @@ TEST_CASE("ColonLexer char8_t ':ba2'-test")
 	ColonLexer<char8_t> const lexer{ test_source };
 	auto res = lexer.lex();
 
-	CHECK(res == expected_tokens);
+	std::vector<PreDefToken> tokens;
+	std::transform(res.begin(), res.end(), std::back_inserter(tokens), [](const TokenMeta& tokenMeta) {
+		return tokenMeta.Token;
+		});
+
+	CHECK(tokens == expected_tokens);
 }
 
 TEST_CASE("ColonLexer char8_t 'Ya[{}]()'-test")
@@ -41,7 +47,12 @@ TEST_CASE("ColonLexer char8_t 'Ya[{}]()'-test")
 	ColonLexer<char8_t> const lexer{ test_source };
 	auto res = lexer.lex();
 
-	CHECK(res == expected_tokens);
+	std::vector<PreDefToken> tokens;
+	std::transform(res.begin(), res.end(), std::back_inserter(tokens), [](const TokenMeta& tokenMeta) {
+		return tokenMeta.Token;
+		});
+
+	CHECK(tokens == expected_tokens);
 }
 
 TEST_CASE("ColonLexer char8_t '*+-/'-test")
@@ -57,8 +68,12 @@ TEST_CASE("ColonLexer char8_t '*+-/'-test")
 
 	ColonLexer<char8_t> const lexer{ test_source };
 	auto res = lexer.lex();
+	std::vector<PreDefToken> tokens;
+	std::transform(res.begin(), res.end(), std::back_inserter(tokens), [](const TokenMeta& tokenMeta) {
+		return tokenMeta.Token;
+		});
 
-	CHECK(res == expected_tokens);
+	CHECK(tokens == expected_tokens);
 }
 
 TEST_CASE("ColonLexer char8_t '=&!|><\"'-test")
@@ -77,8 +92,12 @@ TEST_CASE("ColonLexer char8_t '=&!|><\"'-test")
 
 	ColonLexer<char8_t> const lexer{ test_source };
 	auto res = lexer.lex();
+	std::vector<PreDefToken> tokens;
+	std::transform(res.begin(), res.end(), std::back_inserter(tokens), [](const TokenMeta& tokenMeta) {
+		return tokenMeta.Token;
+		});
 
-	CHECK(res == expected_tokens);
+	CHECK(tokens == expected_tokens);
 }
 
 TEST_CASE("ColonLexer char8_t ':a(){:u=1963;}'-test")
@@ -105,5 +124,10 @@ TEST_CASE("ColonLexer char8_t ':a(){:u=1963;}'-test")
 	ColonLexer<char8_t> const lexer{ test_source };
 	auto res = lexer.lex();
 
-	CHECK(res == expected_tokens);
+	std::vector<PreDefToken> tokens;
+	std::transform(res.begin(), res.end(), std::back_inserter(tokens), [](const TokenMeta& tokenMeta) {
+		return tokenMeta.Token;
+		});
+
+	CHECK(tokens == expected_tokens);
 }

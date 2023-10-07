@@ -37,3 +37,16 @@ enum class PreDefToken : uint8_t
 
 	EndOfFile
 };
+
+struct SourceInformation
+{
+	char CurrentElem;
+	uint16_t Line = 0;
+	uint16_t Column = 0;
+};
+
+struct TokenMeta 
+{
+	PreDefToken Token;
+	SourceInformation SourceInfo;
+};

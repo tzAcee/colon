@@ -25,82 +25,63 @@ auto ColonParser::parse_entry() -> ASTNode
 auto ColonParser::parse_functionUnparameterised() -> ASTNode
 {
 	ASTNode function_unparam_node("function unparameterised");
+	ColonParserCompliance compliance(function_unparam_node);
 
-	function_unparam_node.Children().emplace_back(parse_def());
+	compliance.AddChild(parse_def());
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorParenthesesOpen)
-	{
-		throw std::runtime_error("Expected '(' in function unparameterised");
-	}
-	function_unparam_node.Children().emplace_back(ASTNode("("));
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorParenthesesOpen);
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorParenthesesClose);
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorCurlyBracesOpen);
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorParenthesesClose)
-	{
-		throw std::runtime_error("Expected ')' in function unparameterised");
-	}
-	function_unparam_node.Children().emplace_back(ASTNode(")"));
+	compliance.AddChild(parse_expression());
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorCurlyBracesOpen)
-	{
-		throw std::runtime_error("Expected '{' in function unparameterised");
-	}
-	function_unparam_node.Children().emplace_back(ASTNode("{"));
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorCurlyBracesClose);
 
-	function_unparam_node.Children().emplace_back(parse_expression());
-
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorCurlyBracesClose)
-	{
-		throw std::runtime_error("Expected '}' in function unparameterised");
-	}
-	function_unparam_node.Children().emplace_back(ASTNode("}"));
-
-	return function_unparam_node;
+	return compliance.CompletedNode();
 }
 
 auto ColonParser::parse_def() -> ASTNode
 {
 	ASTNode def_node("def");
+	ColonParserCompliance compliance(def_node);
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorColon)
-	{
-		throw std::runtime_error("Expected ':' in def");
-	}
-	def_node.Children().emplace_back(ASTNode(":"));
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorColon);
 
-	def_node.Children().emplace_back(parse_word());
+	compliance.AddChild(parse_word());
 
-	return def_node;
+	return compliance.CompletedNode();
 }
 
 auto ColonParser::parse_expression() -> ASTNode
 {
 	//ParseFallThrough::parse_with_fall_through([this]() { parse_digit(); });
 	ASTNode def_node("expression");
+	ColonParserCompliance compliance(def_node);
 
 	{
 		// Parse assignment | assignment expression
 		m_TokenIterator.Remember();
-		auto result = ParseFallThrough::parse_with_fall_through([this, &def_node]()
+		auto result = ParseFallThrough::parse_with_fall_through([this, &compliance]()
 			{
 				auto assign_node = parse_assignment();
-				def_node.Children().emplace_back(std::move(assign_node));
+				compliance.AddChild(std::move(assign_node));
 			});
 		if (result == ParseFallThrough::ParseState::SUCCESS)
 		{
 			m_TokenIterator.Forget();
 
 			m_TokenIterator.Remember();
-			result = ParseFallThrough::parse_with_fall_through([this, &def_node]()
+			result = ParseFallThrough::parse_with_fall_through([this, &compliance]()
 				{
 					auto expression_node = parse_expression();
-					def_node.Children().emplace_back(std::move(expression_node));
+					compliance.AddChild(std::move(expression_node));
 				});
 			if (result == ParseFallThrough::ParseState::SUCCESS)
 				m_TokenIterator.Forget();
 			else
 				m_TokenIterator.Reset();
 
-			return def_node;
+			return compliance.CompletedNode();
 		}
 		m_TokenIterator.Reset();
 	}
@@ -108,27 +89,27 @@ auto ColonParser::parse_expression() -> ASTNode
 	// Parse functionCall | functionCall expression
 	{
 		m_TokenIterator.Remember();
-		auto result = ParseFallThrough::parse_with_fall_through([this, &def_node]()
+		auto result = ParseFallThrough::parse_with_fall_through([this, &compliance]()
 			{
 				auto fc_call_node = parse_functionCall();
-				def_node.Children().emplace_back(std::move(fc_call_node));
+				compliance.AddChild(std::move(fc_call_node));
 			});
 		if (result == ParseFallThrough::ParseState::SUCCESS)
 		{
 			m_TokenIterator.Forget();
 
 			m_TokenIterator.Remember();
-			result = ParseFallThrough::parse_with_fall_through([this, &def_node]()
+			result = ParseFallThrough::parse_with_fall_through([this, &compliance]()
 				{
 					auto expression_node = parse_expression();
-					def_node.Children().emplace_back(std::move(expression_node));
+					compliance.AddChild(std::move(expression_node));
 				});
 			if (result == ParseFallThrough::ParseState::SUCCESS)
 				m_TokenIterator.Forget();
 			else
 				m_TokenIterator.Reset();
 
-			return def_node;
+			return compliance.CompletedNode();
 		}
 		m_TokenIterator.Reset();
 	}
@@ -139,87 +120,73 @@ auto ColonParser::parse_expression() -> ASTNode
 auto ColonParser::parse_functionCall() -> ASTNode
 {
 	ASTNode function_call_node("function call");
-	function_call_node.Children().emplace_back(parse_word());
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorParenthesesOpen)
-	{
-		throw std::runtime_error("Expected '(' in function call");
-	}
-	function_call_node.Children().emplace_back(ASTNode("("));
+	ColonParserCompliance compliance(function_call_node);
+
+	compliance.AddChild(parse_word());
+
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorParenthesesOpen);
 
 	m_TokenIterator.Remember();
-	auto result = ParseFallThrough::parse_with_fall_through([this, &function_call_node]()
+	auto result = ParseFallThrough::parse_with_fall_through([this, &compliance]()
 		{
 			auto expression_node = parse_variableList();
-			function_call_node.Children().emplace_back(std::move(expression_node));
+			compliance.AddChild(std::move(expression_node));
 		});
 	if (result == ParseFallThrough::ParseState::SUCCESS)
 		m_TokenIterator.Forget();
 	else
 		m_TokenIterator.Reset();
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorParenthesesOpen)
-	{
-		throw std::runtime_error("Expected ')' in function call");
-	}
-	function_call_node.Children().emplace_back(ASTNode(")"));
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorParenthesesClose);
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorSemicolon)
-	{
-		throw std::runtime_error("Expected ';' in function call");
-	}
-	function_call_node.Children().emplace_back(ASTNode(";"));
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorSemicolon);
 
-	return function_call_node;
+	return compliance.CompletedNode();
 }
 
 auto ColonParser::parse_variableList() -> ASTNode
 {
 	ASTNode variable_list_node("variable list");
-
-	variable_list_node.Children().emplace_back(parse_word());
+	ColonParserCompliance compliance(variable_list_node);
+	compliance.AddChild(parse_word());
 
 	// TODO check comma
 
-	return variable_list_node;
+	return compliance.CompletedNode();
 }
 
 auto ColonParser::parse_assignment() -> ASTNode
 {
 	ASTNode assign_node("assignment");
+	ColonParserCompliance compliance(assign_node);
 
-	assign_node.Children().emplace_back(parse_def());
+	compliance.AddChild(parse_def());
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorAssign)
-	{
-		throw std::runtime_error("Expected '=' in assignment");
-	}
-	assign_node.Children().emplace_back(ASTNode("="));
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorAssign);
 
-	assign_node.Children().emplace_back(parse_variableValue());
+	compliance.AddChild(parse_variableValue());
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorSemicolon)
-	{
-		throw std::runtime_error("Expected ';' in assignment");
-	}
-	assign_node.Children().emplace_back(ASTNode(";"));
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorSemicolon);
 
-	return assign_node;
+	return compliance.CompletedNode();
 }
 
 auto ColonParser::parse_variableValue() -> ASTNode
 {
 	ASTNode assign_node("variable value");
+	ColonParserCompliance compliance(assign_node);
+
 	{
 		m_TokenIterator.Remember();
-		auto result = ParseFallThrough::parse_with_fall_through([this, &assign_node]()
+		auto result = ParseFallThrough::parse_with_fall_through([this, &compliance]()
 			{
 				auto expression_node = parse_string();
-				assign_node.Children().emplace_back(std::move(expression_node));
+				compliance.AddChild(std::move(expression_node));
 			});
 		if (result == ParseFallThrough::ParseState::SUCCESS)
 		{
 			m_TokenIterator.Forget();
-			return assign_node;
+			return compliance.CompletedNode();
 		}
 		else
 			m_TokenIterator.Reset();
@@ -227,15 +194,15 @@ auto ColonParser::parse_variableValue() -> ASTNode
 
 	{
 		m_TokenIterator.Remember();
-		auto result = ParseFallThrough::parse_with_fall_through([this, &assign_node]()
+		auto result = ParseFallThrough::parse_with_fall_through([this, &compliance]()
 			{
 				auto expression_node = parse_number();
-				assign_node.Children().emplace_back(std::move(expression_node));
+				compliance.AddChild(std::move(expression_node));
 			});
 		if (result == ParseFallThrough::ParseState::SUCCESS)
 		{
 			m_TokenIterator.Forget();
-			return assign_node;
+			return compliance.CompletedNode();
 		}
 		else
 			m_TokenIterator.Reset();
@@ -247,49 +214,38 @@ auto ColonParser::parse_variableValue() -> ASTNode
 auto ColonParser::parse_string() -> ASTNode
 {
 	ASTNode string_node("string");
+	ColonParserCompliance compliance(string_node);
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorQuote);
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorQuote)
-	{
-		throw std::runtime_error("Expected '\"' in string");
-	}
-	string_node.Children().emplace_back(ASTNode("\""));
+	compliance.AddChild(parse_word());
 
-	string_node.Children().emplace_back(parse_word());
+	compliance.AddToNode(m_TokenIterator, PreDefToken::OperatorQuote);
 
-	if (m_TokenIterator.Next().value() != PreDefToken::OperatorQuote)
-	{
-		throw std::runtime_error("Expected '\"' in string");
-	}
-	string_node.Children().emplace_back(ASTNode("\""));
-
-	return string_node;
+	return compliance.CompletedNode();
 }
 
 auto ColonParser::parse_letter() -> ASTNode
-{
-	ASTNode letter_node("letter");
+{	ASTNode letter_node("letter");
 
-	if (m_TokenIterator.Next().value() != PreDefToken::Letter)
-	{
-		throw std::runtime_error("Expected a 'letter' in letter");
-	}
-	letter_node.Children().emplace_back(ASTNode("a letter"));
+	ColonParserCompliance compliance(letter_node);
+	compliance.AddToNode(m_TokenIterator, PreDefToken::Letter);
 
-	return letter_node;
+	return compliance.CompletedNode();
+
 }
 
 auto ColonParser::parse_word() -> ASTNode
 {
 	ASTNode word_node("word");
-
-	word_node.Children().emplace_back(parse_letter());
+	ColonParserCompliance compliance(word_node);
+	compliance.AddChild(parse_letter());
 
 	{
 		m_TokenIterator.Remember();
-		auto result = ParseFallThrough::parse_with_fall_through([this, &word_node]()
+		auto result = ParseFallThrough::parse_with_fall_through([this, &compliance]()
 			{
 				auto expression_node = parse_word();
-				word_node.Children().emplace_back(std::move(expression_node));
+				compliance.AddChild(std::move(expression_node));
 			});
 		if (result == ParseFallThrough::ParseState::SUCCESS)
 		{
@@ -299,21 +255,21 @@ auto ColonParser::parse_word() -> ASTNode
 			m_TokenIterator.Reset();
 	}
 
-	return word_node;
+	return compliance.CompletedNode();
 }
 
 auto ColonParser::parse_number() -> ASTNode
 {
 	ASTNode number_node("number");
-
-	number_node.Children().emplace_back(parse_digit());
+	ColonParserCompliance compliance(number_node);
+	compliance.AddChild(parse_digit());
 
 	{
 		m_TokenIterator.Remember();
-		auto result = ParseFallThrough::parse_with_fall_through([this, &number_node]()
+		auto result = ParseFallThrough::parse_with_fall_through([this, &compliance]()
 			{
 				auto expression_node = parse_number();
-				number_node.Children().emplace_back(std::move(expression_node));
+				compliance.AddChild(std::move(expression_node));
 			});
 		if (result == ParseFallThrough::ParseState::SUCCESS)
 		{
@@ -323,18 +279,15 @@ auto ColonParser::parse_number() -> ASTNode
 			m_TokenIterator.Reset();
 	}
 
-	return number_node;
+	return compliance.CompletedNode();
 }
 
 auto ColonParser::parse_digit() -> ASTNode
 {
 	ASTNode digit_node("digit");
+	ColonParserCompliance compliance(digit_node);
 
-	if (m_TokenIterator.Next().value() != PreDefToken::Number)
-	{
-		throw std::runtime_error("Expected a 'digit' in digit");
-	}
-	digit_node.Children().emplace_back(ASTNode("digit"));
+	compliance.AddToNode(m_TokenIterator, PreDefToken::Number);
 
-	return digit_node;
+	return compliance.CompletedNode();
 }
