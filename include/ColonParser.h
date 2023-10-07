@@ -30,7 +30,7 @@ public:
 class ColonParser
 {
 public:
-	ColonParser(std::vector<TokenMeta> const& tokens) : m_TokenIterator{ TokenIterator{std::move(tokens)} }
+	ColonParser(std::vector<TokenMeta> const& tokens) : m_TokenIterator{ TokenIterator{tokens} }
 	{
 	}
 

@@ -70,5 +70,5 @@ TEST_CASE("ColonCompiler test-failure")
 
 	ColonCompiler compiler;
 
-	CHECK_THROWS_WITH(compiler.compile(test_source), "Expected a Token with ID '12', but got 'a' [21].");
+	CHECK_THROWS_WITH_AS(compiler.compile(test_source), "Expected a Token with ID '12', but got 'a' [21].", std::exception);
 }
